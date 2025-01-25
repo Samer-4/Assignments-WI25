@@ -27,6 +27,10 @@ class Node:
          - node includes self in node.neighbors (undirected)
         """
         # TODO: Implement adding a neighbor in an undirected manner
+        if node not in self.neighbors:
+        self.neighbors.append(node)
+        if self not in node.neighbors:
+        node.neighbors.append(self)
         pass
 
     def __repr__(self):
@@ -58,11 +62,25 @@ def parse_maze_to_graph(maze):
     # 3) Identify start_node (if (0,0) is open) and goal_node (if (rows-1, cols-1) is open)
 
     # TODO: Implement the logic to build nodes and link neighbors
+    for r in range(rows):
+        for c in range(cols):
+            if maze[r][c] == 0:  # Open cell
+                nodes_dict[(r, c)] = Node((r, c))
+
+    for (r, c), node in nodes_dict.items():
+        for dr, dc in [(-1, 0), (1, 0), (0, -1), (0, 1)]:  # Up, Down, Left, Right
+            neighbor_pos = (r + dr, c + dc)
+            if neighbor_pos in nodes_dict:
+                node.add_neighbor(nodes_dict[neighbor_pos])
+
 
     start_node = None
     goal_node = None
 
     # TODO: Assign start_node and goal_node if they exist in nodes_dict
+    start_node = nodes_dict.get((0, 0), None)
+    goal_node = nodes_dict.get((rows - 1, cols - 1), None)
+
 
     return nodes_dict, start_node, goal_node
 
@@ -82,6 +100,23 @@ def bfs(start_node, goal_node):
       3. Also track parent_map to reconstruct the path once goal_node is reached.
     """
     # TODO: Implement BFS
+    if not start_node or not goal_node:
+        return None
+
+    queue = deque([start_node])
+    visited = set()
+    parent_map = {start_node: None}
+
+    while queue:
+        current = queue.popleft()
+        if current == goal_node:
+            return reconstruct_path(goal_node, parent_map)
+        
+        visited.add(current)
+        for neighbor in current.neighbors:
+            if neighbor not in visited and neighbor not in parent_map:
+                parent_map[neighbor] = current
+                queue.append(neighbor)
     return None
 
 
@@ -100,6 +135,23 @@ def dfs(start_node, goal_node):
       3. Reconstruct path via parent_map if goal_node is found.
     """
     # TODO: Implement DFS
+    if not start_node or not goal_node:
+        return None
+
+    stack = [start_node]
+    visited = set()
+    parent_map = {start_node: None}
+
+    while stack:
+        current = stack.pop()
+        if current == goal_node:
+            return reconstruct_path(goal_node, parent_map)
+        
+        visited.add(current)
+        for neighbor in current.neighbors:
+            if neighbor not in visited and neighbor not in parent_map:
+                parent_map[neighbor] = current
+                stack.append(neighbor)
     return None
 
 
@@ -120,6 +172,27 @@ def astar(start_node, goal_node):
       4. Expand the node with the smallest f_score, update neighbors if a better path is found.
     """
     # TODO: Implement A*
+    if not start_node or not goal_node:
+        return None
+
+    open_set = []
+    heapq.heappush(open_set, (0, start_node))
+    g_score = defaultdict(lambda: float('inf'))
+    g_score[start_node] = 0
+    parent_map = {start_node: None}
+
+    while open_set:
+        _, current = heapq.heappop(open_set)
+        if current == goal_node:
+            return reconstruct_path(goal_node, parent_map)
+        
+        for neighbor in current.neighbors:
+            tentative_g_score = g_score[current] + 1
+            if tentative_g_score < g_score[neighbor]:
+                parent_map[neighbor] = current
+                g_score[neighbor] = tentative_g_score
+                f_score = tentative_g_score + manhattan_distance(neighbor, goal_node)
+                heapq.heappush(open_set, (f_score, neighbor))
     return None
 
 def manhattan_distance(node_a, node_b):
@@ -128,7 +201,8 @@ def manhattan_distance(node_a, node_b):
     if they are (row, col) pairs.
     """
     # TODO: Return |r1 - r2| + |c1 - c2|
-    return 0
+    return abs(node_a.value[0] - node_b.value[0]) + abs(node_a.value[1] - node_b.value[1])
+
 
 
 ###############################################################################
@@ -146,6 +220,27 @@ def bidirectional_search(start_node, goal_node):
       3. If the frontiers intersect, reconstruct the path by combining partial paths.
     """
     # TODO: Implement bidirectional search
+    if not start_node or not goal_node:
+        return None
+
+    # Initialize two frontiers (queues)
+    frontier_start = deque([start_node])
+    frontier_goal = deque([goal_node])
+
+    # Initialize visited sets and parent maps for both directions
+    visited_start = {start_node: None}
+    visited_goal = {goal_node: None}
+
+    while frontier_start and frontier_goal:
+        # Expand from the start side
+        result = expand_bidirectional(frontier_start, visited_start, visited_goal)
+        if result:
+            return reconstruct_bidirectional_path(result, visited_start, visited_goal)
+
+        # Expand from the goal side
+        result = expand_bidirectional(frontier_goal, visited_goal, visited_start)
+        if result:
+            return reconstruct_bidirectional_path(result, visited_start, visited_goal)
     return None
 
 
@@ -167,6 +262,35 @@ def simulated_annealing(start_node, goal_node, temperature=1.0, cooling_rate=0.9
       4. Decrease temperature each step by cooling_rate until below min_temperature or we reach goal_node.
     """
     # TODO: Implement simulated annealing
+    if not start_node or not goal_node:
+        return None
+
+    current = start_node
+    path = [current.value]
+    current_cost = manhattan_distance(current, goal_node)
+
+    while temperature > min_temperature:
+        # If the current node is the goal, return the path
+        if current == goal_node:
+            return path
+
+        # Choose a random neighbor
+        if not current.neighbors:
+            break
+        next_node = random.choice(current.neighbors)
+
+        # Calculate the cost of moving to the next node
+        next_cost = manhattan_distance(next_node, goal_node)
+        cost_diff = next_cost - current_cost
+
+        # Decide whether to move
+        if cost_diff < 0 or random.random() < math.exp(-cost_diff / temperature):
+            current = next_node
+            path.append(current.value)
+            current_cost = next_cost
+
+        # Reduce the temperature
+        temperature *= cooling_rate
     return None
 
 
@@ -186,7 +310,12 @@ def reconstruct_path(end_node, parent_map):
       2. Collect node.value, reverse the list, return it.
     """
     # TODO: Implement path reconstruction
-    return None
+    path = []
+    current = end_node
+    while current is not None:
+        path.append(current.value)
+        current = parent_map[current]
+    return path[::-1]
 
 
 ###############################################################################
