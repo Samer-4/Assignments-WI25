@@ -233,14 +233,69 @@ def bidirectional_search(start_node, goal_node):
 
     while frontier_start and frontier_goal:
         # Expand from the start side
-        result = expand_bidirectional(frontier_start, visited_start, visited_goal)
-        if result:
-            return reconstruct_bidirectional_path(result, visited_start, visited_goal)
+        intersecting_node = expand(frontier_start, visited_start, visited_goal)
+        if intersecting_node:
+            return reconstruct_bidirectional_path(intersecting_node, visited_start, visited_goal)
 
         # Expand from the goal side
-        result = expand_bidirectional(frontier_goal, visited_goal, visited_start)
-        if result:
-            return reconstruct_bidirectional_path(result, visited_start, visited_goal)
+        intersecting_node = expand(frontier_goal, visited_goal, visited_start)
+        if intersecting_node:
+            return reconstruct_bidirectional_path(intersecting_node, visited_start, visited_goal)
+
+    return None  # No path found
+
+
+def expand(frontier, visited_self, visited_other):
+    """
+    Expands one layer of nodes for bidirectional search.
+    Checks if the two searches meet.
+    Args:
+        frontier: Queue of nodes to explore in the current direction.
+        visited_self: Dictionary of visited nodes and their parents for the current direction.
+        visited_other: Dictionary of visited nodes and their parents for the opposite direction.
+    Returns:
+        The intersecting node if the two searches meet, otherwise None.
+    """
+    if not frontier:
+        return None
+
+    current_node = frontier.popleft()
+    for neighbor in current_node.neighbors:
+        if neighbor not in visited_self:
+            visited_self[neighbor] = current_node  # Track parent
+            frontier.append(neighbor)
+            if neighbor in visited_other:  # Check if this node is visited in the other direction
+                return neighbor  # Intersection point found
+    return None
+
+
+def reconstruct_bidirectional_path(intersect_node, visited_start, visited_goal):
+    """
+    Reconstructs the path from start to goal once the searches meet.
+    Combines the paths from start to intersection and goal to intersection.
+    Args:
+        intersect_node: The node where the two searches meet.
+        visited_start: Parent map from the start search.
+        visited_goal: Parent map from the goal search.
+    Returns:
+        A list representing the full path from start to goal.
+    """
+    # Reconstruct path from start to intersection
+    path_from_start = []
+    current = intersect_node
+    while current:
+        path_from_start.append(current.value)
+        current = visited_start[current]
+
+    # Reconstruct path from goal to intersection
+    path_from_goal = []
+    current = visited_goal[intersect_node]
+    while current:
+        path_from_goal.append(current.value)
+        current = visited_goal[current]
+
+    # Combine paths (start -> intersection -> goal)
+    return path_from_start[::-1] + path_from_goal
     return None
 
 
