@@ -28,9 +28,9 @@ class Node:
         """
         # TODO: Implement adding a neighbor in an undirected manner
         if node not in self.neighbors:
-        self.neighbors.append(node)
+            self.neighbors.append(node)
         if self not in node.neighbors:
-        node.neighbors.append(self)
+            node.neighbors.append(self)
         pass
 
     def __repr__(self):
