@@ -33,9 +33,8 @@ def drop_piece(board, row, col, piece):
     None. The 'board' is modified in-place. Do NOT return a new board!
     """
     if board[row, col] != 0.0:
-        return False
+        return
     board[row, col] = float(piece)
-    return True
 
 def is_valid_location(board, col):
     """
