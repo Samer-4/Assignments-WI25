@@ -32,10 +32,13 @@ def drop_piece(board, row, col, piece):
     Returns:
     None. The 'board' is modified in-place. Do NOT return a new board!
     """
-    if board[row, col] != 0.0:
+    if not is_valid_location(board, col): 
         return False
-    board[row, col] = float(piece)
-    return True
+    row = get_next_open_row(board, col)
+    if row is not None:
+        board[row, col] = float(piece)
+        return True
+    return False
 
 def is_valid_location(board, col):
     """
@@ -63,8 +66,8 @@ def get_next_open_row(board, col):
     Returns:
     int: The row index of the lowest empty cell in this column.
     """
-    for row in range(ROW_COUNT - 1, -1, -1):
-        if board[row, col] == 0.0:  
+    for row in range(ROW_COUNT - 1, -1, -1): 
+        if board[row, col] == 0.0:
             return row
     return None
     pass
