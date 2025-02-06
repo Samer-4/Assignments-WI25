@@ -32,7 +32,11 @@ def drop_piece(board, row, col, piece):
     Returns:
     None. The 'board' is modified in-place. Do NOT return a new board!
     """
-    board[row, col] = float(piece)
+    row = get_next_open_row(board, col)
+    if row is not None:
+        board[row, col] = float(piece)
+        return True
+    return False
     pass
 
 
