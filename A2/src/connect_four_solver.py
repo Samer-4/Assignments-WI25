@@ -32,7 +32,7 @@ def drop_piece(board, row, col, piece):
     Returns:
     None. The 'board' is modified in-place. Do NOT return a new board!
     """
-   if board[row, col] != 0.0:
+    if board[row, col] != 0.0:
         return False
     board[row, col] = float(piece)
     return True
