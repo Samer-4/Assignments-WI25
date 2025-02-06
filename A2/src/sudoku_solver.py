@@ -39,7 +39,11 @@ def find_empty_cell(board):
         - If there is an empty cell, returns (row_index, col_index).
         - If there are no empty cells, returns None.
     """
-    # TODO: implement
+    for row in range(9):
+        for col in range(9):
+            if board[row][col] == 0:
+                return row, col
+    return None
     pass
 
 
@@ -59,7 +63,17 @@ def is_valid(board, row, col, num):
     Returns:
     bool: True if valid, False otherwise.
     """
-    # TODO: implement
+    if num in board[row]:
+        return False
+    if num in [board[i][col] for i in range(9)]:
+        return False
+    box_row_start = (row // 3) * 3
+    box_col_start = (col // 3) * 3
+    for i in range(3):
+        for j in range(3):
+            if board[box_row_start + i][box_col_start + j] == num:
+                return False
+    return True
     pass
 
 
@@ -75,7 +89,17 @@ def solve_sudoku(board):
         - True if the puzzle is solved successfully.
         - False if the puzzle is unsolvable.
     """
-    # TODO: implement
+    empty_cell = find_empty_cell(board)
+    if not empty_cell:
+        return True
+    row, col = empty_cell
+    for num in range(1, 10):
+        if is_valid(board, row, col, num):
+            board[row][col] = num
+            if solve_sudoku(board):
+                return True
+            board[row][col] = 0
+    return False
     pass
 
 
@@ -92,9 +116,19 @@ def is_solved_correctly(board):
     Returns:
     bool: True if the board is correctly solved, False otherwise.
     """
-    # TODO: implement
+    for i in range(9):
+        if sorted(board[i]) != list(range(1, 10)) or sorted([board[j][i] for j in range(9)]) != list(range(1, 10)):
+            return False
+    for box_row in range(0, 9, 3):
+        for box_col in range(0, 9, 3):
+            box_values = []
+            for i in range(3):
+                for j in range(3):
+                    box_values.append(board[box_row + i][box_col + j])
+            if sorted(box_values) != list(range(1, 10)):
+                return False
+    return True
     pass
-
 
 if __name__ == "__main__":
     # Example usage / debugging:
@@ -112,4 +146,3 @@ if __name__ == "__main__":
 
     print("Debug: Original board:\n")
     print_board(example_board)
-    # TODO: Students can call their solve_sudoku here once implemented and check if they got a correct solution.
