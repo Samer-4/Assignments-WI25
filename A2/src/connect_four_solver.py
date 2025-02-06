@@ -51,7 +51,7 @@ def is_valid_location(board, col):
     Returns:
     bool: True if it's valid to drop a piece in this column, False otherwise.
     """
-    return board[0, col] == 0
+    return board[0, col] == 0.0
     pass
 
 
@@ -67,7 +67,7 @@ def get_next_open_row(board, col):
     int: The row index of the lowest empty cell in this column.
     """
     for row in range(ROW_COUNT - 1, -1, -1):
-        if board[row, col] == 0:
+        if board[row, col] == 0.0:  
             return row
     return None
     pass
