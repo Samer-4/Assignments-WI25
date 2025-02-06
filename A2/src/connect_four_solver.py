@@ -32,13 +32,10 @@ def drop_piece(board, row, col, piece):
     Returns:
     None. The 'board' is modified in-place. Do NOT return a new board!
     """
-    if not is_valid_location(board, col): 
+   if board[row, col] != 0.0:
         return False
-    row = get_next_open_row(board, col)
-    if row is not None:
-        board[row, col] = float(piece)
-        return True
-    return False
+    board[row, col] = float(piece)
+    return True
 
 def is_valid_location(board, col):
     """
